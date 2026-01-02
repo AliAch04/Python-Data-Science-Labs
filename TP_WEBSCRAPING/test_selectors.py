@@ -5,19 +5,30 @@ url = "http://quotes.toscrape.com/"
 response = requests.get(url)
 soup = BeautifulSoup(response.content, 'html.parser')
 
-# Méthode 1 : find() - Trouve le PREMIER élément
-first_quote = soup.find('span', class_='text')
-print("Première citation:", first_quote.text)
+# Trouver les 3 premières divs contenant les citations
+quotes_divs = soup.find_all('div', class_='quote')[:3]
 
-# Méthode 2 : find_all() - Trouve TOUS les éléments
-all_quotes = soup.find_all('span', class_='text')
-print(f"\nNombre total de citations: {len(all_quotes)}")
+print("Les 3 premières citations :\n")
 
-# Méthode 3 : select() - Utilise les sélecteurs CSS
-quotes_css = soup.select('div.quote span.text')
-print(f"Citations trouvées avec CSS selector: {len(quotes_css)}")
-
-# Méthode 4 : Navigation dans l'arbre
-first_quote_div = soup.find('div', class_='quote')
-author = first_quote_div.find('small', class_='author')
-print(f"\nAuteur de la première citation: {author.text}")
+for i, quote_div in enumerate(quotes_divs, 1):
+    # Texte de la citation
+    text_span = quote_div.find('span', class_='text')
+    text = text_span.text if text_span else "Non trouve"
+    
+    # Auteur
+    author_span = quote_div.find('small', class_='author')
+    author = author_span.text if author_span else "Non trouve"
+    
+    # Premier tag (dans div.tags > a.tag)
+    tags_div = quote_div.find('div', class_='tags')
+    first_tag = "Aucun tag"
+    if tags_div:
+        first_tag_tag = tags_div.find('a', class_='tag')
+        if first_tag_tag:
+            first_tag = first_tag_tag.text
+    
+    # Affichage
+    print(f"Citation {i} :")
+    print(f"  Texte : {text}")
+    print(f"  Auteur : {author}")
+    print(f"  Premier tag : {first_tag}")
