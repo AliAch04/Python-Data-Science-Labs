@@ -44,6 +44,20 @@ def scrape_single_page(url):
     
     return quotes_data
 
+def save_to_csv(quotes_data, filename='quotes.csv'):
+    """
+    Sauvegarde les citations dans un fichier CSV
+    """
+    with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
+        fieldnames = ['text', 'author', 'tags']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        
+        writer.writeheader()
+        for quote in quotes_data:
+            writer.writerow(quote)
+            
+        print(f"Données sauvegardées dans {filename}")
+
 # Test de la fonction
 if __name__ == "__main__":
     # Début du chronomètre
@@ -55,6 +69,9 @@ if __name__ == "__main__":
     print(f"Nombre de citations scrapées: {len(quotes)}")
     print("\nPremière citation:")
     print(quotes[0])
+    
+    # Sauvegarde dans un fichier CSV
+    save_to_csv(quotes)
     
     # Fin du chronomètre
     end_time = time.time()
