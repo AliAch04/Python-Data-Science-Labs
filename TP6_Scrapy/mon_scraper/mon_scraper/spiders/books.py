@@ -15,16 +15,25 @@ class BooksSpider(CrawlSpider):
         self.logger.info(f'Crawling page: {response.url}')
 
     def parse_book(self, response):
-        item = ProductItem()
+        book = BookItem()
         
-        item['title'] = response.css('h1::text').get()
-        item['price'] = response.css('p.price_color::text').get()
-        item['availability'] = response.css('p.availability::text').re_first(r'\d+')
-        item['rating'] = response.css('p.star-rating::attr(class)').re_first(r'star-rating (\w+)')
-        item['description'] = response.css('article.product_page p::text').get()
-        item['url'] = response.url
+        # Fonction de nettoyage helper
+        clean_text = lambda x: x.strip() if x else None
+        clean_price = lambda x: float(x.replace('£', '').strip()) if x and x.replace('£', '').strip() else None
         
-        self.logger.info(f'Scraped book: {item["title"]} - {item["price"]}')
+        book['title'] = clean_text(response.css('h1::text').get())
+        book['price'] = clean_price(response.css('p.price_color::text').get())
         
-        # Yield l'item au lieu du dict
-        yield item
+        availability = response.css('p.availability::text').getall()
+        book['availability'] = ' '.join(filter(None, [text.strip() for text in availability])) or None
+        
+        book['description'] = clean_text(response.xpath('//div[@id="product_description"]/following-sibling::p/text()').get())
+        book['upc'] = clean_text(response.xpath('//th[contains(text(), "UPC")]/following-sibling::td/text()').get())
+        book['product_type'] = clean_text(response.xpath('//th[contains(text(), "Product Type")]/following-sibling::td/text()').get())
+        
+        tax_raw = response.xpath('//th[contains(text(), "Tax")]/following-sibling::td/text()').get()
+        book['tax'] = clean_price(tax_raw)
+        
+        yield book
+
+            
