@@ -58,9 +58,13 @@ DOWNLOAD_DELAY = 1
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    "mon_scraper.pipelines.MonScraperPipeline": 300,
-#}
+ITEM_PIPELINES = {
+    "mon_scraper.pipelines.PriceValidationPipeline": 100,      # Premier : validation
+    "mon_scraper.pipelines.DataCleaningPipeline": 200,         # Deuxieme : nettoyage
+    "mon_scraper.pipelines.DatabasePipeline": 300,             # Troisième : DB
+    "mon_scraper.pipelines.JsonWriterPipeline": 400,           # Quatrieme : JSON
+    # "mon_scraper.pipelines.MonScraperPipeline": 500,         # Optionnel
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
