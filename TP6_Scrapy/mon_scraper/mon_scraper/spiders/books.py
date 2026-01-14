@@ -1,6 +1,6 @@
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
-from mon_scraper.items import ProductItem 
+from mon_scraper.items import BookItem
 
 class BooksSpider(CrawlSpider):
     name = 'books'
