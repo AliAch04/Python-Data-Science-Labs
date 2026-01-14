@@ -58,9 +58,15 @@ DOWNLOAD_DELAY = 1
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    "mon_scraper.pipelines.MonScraperPipeline": 300,
-#}
+ITEM_PIPELINES = {
+    "mon_scraper.pipelines.PriceValidationPipeline": 100,
+    "mon_scraper.pipelines.DataCleaningPipeline": 200,
+    "mon_scraper.pipelines.DatabasePipeline": 300,
+    "mon_scraper.pipelines.JsonWriterPipeline": 400,
+    # Optionnel: pour les images
+    # 'scrapy.pipelines.images.ImagesPipeline': 1,
+    # 'mon_scraper.spiders.books.BookImagesPipeline': 500,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
@@ -85,3 +91,18 @@ DOWNLOAD_DELAY = 1
 
 # Set settings whose default value is deprecated to a future-proof value
 FEED_EXPORT_ENCODING = "utf-8"
+
+# ==================== CONFIGURATION PERSONNALISÉE ====================
+
+# Configuration des catégories à scraper
+# 'all' pour toutes les catégories, ou une catégorie spécifique
+CATEGORY = 'all'  # Options: 'all', 'fiction', 'mystery', 'science-fiction', etc.
+
+# Configuration de l'export
+EXPORT_FORMAT = 'csv'  # Options: 'json', 'csv', 'xml'
+EXPORT_FIELDS = ['title', 'price', 'availability', 'rating', 'description', 
+                 'upc', 'product_type', 'tax', 'category', 'url']
+
+# Configuration des images
+IMAGES_STORE = 'images'  # Dossier pour sauvegarder les images
+DOWNLOAD_IMAGES = False  # Mettre à True pour télécharger les images

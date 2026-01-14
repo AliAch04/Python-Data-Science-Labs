@@ -1,0 +1,15 @@
+TP6_Scrapy
+├──env_tp_scrapy/
+├── mon_scraper/
+|   ├── mon_scraper/
+|   │   ├── __init__.py
+|   │   ├── items.py
+|   │   ├── middlewares.py
+|   │   ├── pipelines.py          
+|   │   ├── settings.py           
+|   │   └── spiders/
+|   │       ├── __init__.py
+|   │       └── books_spider.py   
+|   ├── scrapy.cfg
+|   ├── books.db                  
+|   └── output_pipeline.json      
