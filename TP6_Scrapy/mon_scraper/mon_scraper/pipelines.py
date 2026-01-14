@@ -50,8 +50,23 @@ class DataCleaningPipeline:
                     else:
                         cleaned_list.append(element)
                 adapter[field_name] = cleaned_list
+        
+        # Convertir les valeurs numériques
+        numeric_fields = ['price', 'price_excl_tax', 'price_incl_tax', 'tax', 
+                         'number_available', 'number_of_reviews', 'rating']
+        
+        for field in numeric_fields:
+            if field in adapter:
+                try:
+                    if adapter[field] is not None:
+                        if isinstance(adapter[field], str):
+                            # Nettoyer les symboles monétaires
+                            cleaned = adapter[field].replace('£', '').replace('€', '').strip()
+                            adapter[field] = float(cleaned) if cleaned else None
+                except (ValueError, TypeError):
+                    adapter[field] = None
+        
         return item
-
 
 class DatabasePipeline:
     """Stocke les items dans une base SQLite"""
