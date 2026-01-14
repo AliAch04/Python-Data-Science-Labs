@@ -238,3 +238,18 @@ class BooksSpider(CrawlSpider):
         """Appelé quand le spider se ferme"""
         self.logger.info(f"Spider closed: {reason}")
         self.logger.info(f"Total books scraped: {len(self.scraped_books)}")
+
+    def parse(self, response):
+        """Méthode parse par défaut pour le debugging"""
+        self.logger.info(f"Default parse called for: {response.url}")
+        
+        # Soit rediriger vers parse_page pour la page d'accueil
+        if response.url == 'http://books.toscrape.com/':
+            yield from self.parse_page(response)
+        else:
+            # Ou juste logger
+            self.logger.debug(f"No specific parse handler for: {response.url}")
+            yield {
+                'url': response.url,
+                'title': response.css('title::text').get(),
+            }

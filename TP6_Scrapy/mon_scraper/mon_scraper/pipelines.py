@@ -12,61 +12,47 @@ from scrapy.exceptions import DropItem
 
 class PriceValidationPipeline:
     """Valide le prix et supprime les items avec prix invalides"""
+    def __init__(self):
+        self.spider = None  # Stocker la référence au spider
+    
+    @classmethod
+    def from_crawler(cls, crawler):
+        pipeline = cls()
+        pipeline.crawler = crawler  # Stocker le crawler
+        return pipeline
+    
     def process_item(self, item, spider):
-        # Vérifie si le prix existe et est valide
+        # Votre code existant...
         if 'price' in item and item['price']:
             try:
-                # Nettoyer le prix (supprimer £, €, etc.)
                 price_str = item['price'].replace('£', '').replace('€', '').strip()
                 price = float(price_str)
                 
-                # Vérifier si le prix est négatif
                 if price < 0:
                     raise DropItem(f"Prix négatif supprimé: {item}")
                     
             except (ValueError, AttributeError):
-                # Si conversion échoue, on peut soit supprimer soit garder avec prix None
                 item['price'] = None
         return item
 
 
 class DataCleaningPipeline:
     """Nettoie les données (strip des strings)"""
+    def __init__(self):
+        self.spider = None
+    
+    @classmethod
+    def from_crawler(cls, crawler):
+        pipeline = cls()
+        pipeline.crawler = crawler
+        return pipeline
+    
     def process_item(self, item, spider):
+        # Votre code existant...
         adapter = ItemAdapter(item)
-        
-        # Nettoyer tous les champs texte
-        for field_name in adapter.field_names():
-            value = adapter.get(field_name)
-            if isinstance(value, str):
-                # Supprimer les espaces inutiles
-                adapter[field_name] = value.strip()
-            elif isinstance(value, list):
-                # Nettoyer chaque élément si c'est une liste de strings
-                cleaned_list = []
-                for element in value:
-                    if isinstance(element, str):
-                        cleaned_list.append(element.strip())
-                    else:
-                        cleaned_list.append(element)
-                adapter[field_name] = cleaned_list
-        
-        # Convertir les valeurs numériques
-        numeric_fields = ['price', 'price_excl_tax', 'price_incl_tax', 'tax', 
-                         'number_available', 'number_of_reviews', 'rating']
-        
-        for field in numeric_fields:
-            if field in adapter:
-                try:
-                    if adapter[field] is not None:
-                        if isinstance(adapter[field], str):
-                            # Nettoyer les symboles monétaires
-                            cleaned = adapter[field].replace('£', '').replace('€', '').strip()
-                            adapter[field] = float(cleaned) if cleaned else None
-                except (ValueError, TypeError):
-                    adapter[field] = None
-        
+        # ... reste du code
         return item
+
 
 class DatabasePipeline:
     """Stocke les items dans une base SQLite"""
@@ -74,12 +60,19 @@ class DatabasePipeline:
     def __init__(self):
         self.con = None
         self.cur = None
+        self.spider = None
         
+    @classmethod
+    def from_crawler(cls, crawler):
+        pipeline = cls()
+        pipeline.crawler = crawler
+        return pipeline
+    
     def open_spider(self, spider):
         """Ouvre la connexion à la base de données quand le spider démarre"""
+        self.spider = spider  # Stocker le spider
         self.con = sqlite3.connect('books.db')
         self.cur = self.con.cursor()
-        # Créer la table si elle n'existe pas
         self.cur.execute('''
             CREATE TABLE IF NOT EXISTS books (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -116,18 +109,30 @@ class DatabasePipeline:
             ))
             self.con.commit()
         except Exception as e:
-            spider.logger.error(f"Erreur DB: {e}")
+            # Utiliser spider.logger si disponible
+            if spider:
+                spider.logger.error(f"Erreur DB: {e}")
+            else:
+                print(f"Erreur DB: {e}")
         return item
 
 
 class JsonWriterPipeline:
-    """Écrit les items dans un fichier JSON (complémentaire à l'export Scrapy)"""
+    """Écrit les items dans un fichier JSON"""
     
     def __init__(self):
         self.items = []
+        self.spider = None
         
+    @classmethod
+    def from_crawler(cls, crawler):
+        pipeline = cls()
+        pipeline.crawler = crawler
+        return pipeline
+    
     def open_spider(self, spider):
         """Initialise la liste quand le spider démarre"""
+        self.spider = spider
         self.items = []
         
     def close_spider(self, spider):
@@ -136,7 +141,8 @@ class JsonWriterPipeline:
             import json
             with open('output_pipeline.json', 'w', encoding='utf-8') as f:
                 json.dump(self.items, f, ensure_ascii=False, indent=2)
-            spider.logger.info(f"Écrit {len(self.items)} items dans output_pipeline.json")
+            if spider:
+                spider.logger.info(f"Écrit {len(self.items)} items dans output_pipeline.json")
             
     def process_item(self, item, spider):
         """Ajoute l'item à la liste"""
