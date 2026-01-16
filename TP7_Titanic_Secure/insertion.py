@@ -1,6 +1,6 @@
 import pandas as pd
 import sqlite3
-from data_encryption import DataEncryption
+from chiffrement import DataEncryption
 from datetime import datetime
 
 def insert_titanic_data():
